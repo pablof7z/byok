@@ -1,0 +1,12 @@
+.DS_Store
+build/
+DerivedData/
+*.xcuserdata/
+xcuserdata/
+*.xcuserdatad/
+*.xcuserstate
+
+.vercel
+.local
+node_modules
+public/byok-source.tgz

@@ -1,0 +1,14 @@
+{
+  "name": "byok-web",
+  "private": true,
+  "version": "0.1.0",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node scripts/home-server.js",
+    "test": "node scripts/test-token-flow.js"
+  },
+  "dependencies": {
+    "@simplewebauthn/server": "^13.3.0",
+    "@vercel/blob": "^2.3.3"
+  }
+}
