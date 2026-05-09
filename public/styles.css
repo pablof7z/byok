@@ -660,6 +660,25 @@ input::placeholder {
   gap: 14px;
 }
 
+.secret-panel {
+  display: grid;
+  gap: 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface-muted);
+  padding: 14px;
+}
+
+.secret-panel h2 {
+  font-size: 18px;
+}
+
+.secret-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
 .actions {
   margin-top: 2px;
 }
@@ -834,6 +853,7 @@ input::placeholder {
 
   .button-row .button,
   .actions .button,
+  .secret-actions .button,
   .copy-button {
     width: 100%;
   }

@@ -436,6 +436,23 @@
             </div>
             <p class="form-error hidden" id="key-form-error" aria-live="polite"></p>
           </div>
+          ${existing ? `
+            <div class="secret-panel" aria-labelledby="secret-title">
+              <div>
+                <h2 id="secret-title">Raw API Key</h2>
+                <p class="muted">Reveal only when you need to inspect or migrate the stored key.</p>
+              </div>
+              <div class="secret-actions">
+                <button class="button secondary" type="button" id="reveal-key">Show Raw API Key</button>
+                <button class="button secondary hidden" type="button" id="hide-key">Hide Key</button>
+              </div>
+              <div class="copy-block hidden" id="revealed-key-wrap">
+                <code id="revealed-key" translate="no"></code>
+                <button class="button secondary copy-button" type="button" id="copy-revealed-key">Copy</button>
+              </div>
+              <p class="form-error hidden" id="reveal-key-error" aria-live="polite"></p>
+            </div>
+          ` : ""}
           <div class="actions">
             <button class="button" type="submit" id="save-key">Save Key</button>
             <button class="button secondary" type="button" id="cancel">Cancel</button>
@@ -500,6 +517,62 @@
       const result = await api(`/api/keys?id=${encodeURIComponent(existing.id)}`, { method: "DELETE" });
       state.user = result.user;
       renderHome();
+    });
+    if (existing) setupRevealKey(existing);
+  }
+
+  function setupRevealKey(existing) {
+    const revealButton = $("#reveal-key");
+    const hideButton = $("#hide-key");
+    const copyButton = $("#copy-revealed-key");
+    const value = $("#revealed-key");
+    const wrap = $("#revealed-key-wrap");
+    const error = $("#reveal-key-error");
+    if (!revealButton || !hideButton || !copyButton || !value || !wrap || !error) return;
+
+    revealButton.addEventListener("click", async () => {
+      error.classList.add("hidden");
+      error.textContent = "";
+      revealButton.disabled = true;
+      revealButton.textContent = "Revealing...";
+      try {
+        const result = await api("/api/reveal-key", {
+          method: "POST",
+          body: JSON.stringify({ id: existing.id })
+        });
+        value.textContent = result.api_key || "";
+        value.dataset.copyValue = result.api_key || "";
+        wrap.classList.remove("hidden");
+        hideButton.classList.remove("hidden");
+        revealButton.textContent = "Refresh Raw API Key";
+        announce("Raw API key revealed.");
+      } catch (apiError) {
+        error.textContent = `${apiError.message.replaceAll("_", " ")}.`;
+        error.classList.remove("hidden");
+        revealButton.textContent = "Show Raw API Key";
+      } finally {
+        revealButton.disabled = false;
+      }
+    });
+
+    hideButton.addEventListener("click", () => {
+      value.textContent = "";
+      value.dataset.copyValue = "";
+      wrap.classList.add("hidden");
+      hideButton.classList.add("hidden");
+      revealButton.textContent = "Show Raw API Key";
+      announce("Raw API key hidden.");
+    });
+
+    copyButton.addEventListener("click", async () => {
+      const text = value.dataset.copyValue || "";
+      if (!text) return;
+      await navigator.clipboard?.writeText(text);
+      copyButton.textContent = "Copied";
+      announce("Raw API key copied.");
+      setTimeout(() => {
+        copyButton.textContent = "Copy";
+      }, 1200);
     });
   }
 

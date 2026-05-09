@@ -1,5 +1,6 @@
 const assert = require("assert");
 const { sealGrant, openGrant, sha256Base64url } = require("../api/_crypto");
+const { decryptAPIKey, upsertAPIKey } = require("../api/_db");
 
 const verifier = "bullshit-test-verifier";
 
@@ -25,5 +26,16 @@ for (const provider of ["openrouter", "ollama"]) {
   assert.equal(opened.api_key, grant.api_key);
   assert.equal(opened.code_challenge, sha256Base64url(verifier));
 }
+
+const user = { id: "test-user", keys: [] };
+const stored = upsertAPIKey(user, {
+  provider: "ollama",
+  label: "Default",
+  api_key: "ollama-test-key"
+});
+
+assert.equal(stored.provider, "ollama");
+assert.notEqual(stored.encryptedValue, "ollama-test-key");
+assert.equal(decryptAPIKey(user, stored), "ollama-test-key");
 
 console.log("BYOK grant seal/open test passed");
