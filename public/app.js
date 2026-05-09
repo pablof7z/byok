@@ -204,15 +204,15 @@
             </div>
             <div class="request-line">
               <dt class="request-label">Provider</dt>
-              <dd class="request-value">OpenRouter</dd>
+              <dd class="request-value">Ollama Cloud</dd>
             </div>
             <div class="request-line">
               <dt class="request-label">Scope</dt>
-              <dd class="request-value" translate="no">key:openrouter</dd>
+              <dd class="request-value" translate="no">key:ollama</dd>
             </div>
           </dl>
           <div class="key-line">
-            ${logo("openrouter", 40)}
+            ${logo("ollama", 40)}
             <div>
               <div class="key-title">Personal</div>
               <div class="service">Chosen Key</div>
@@ -224,7 +224,7 @@
         <article class="principle">
           <span class="step-number">01</span>
           <h2>Store Keys</h2>
-          <p class="muted">Keep OpenRouter, ElevenLabs, and custom provider keys in one encrypted vault.</p>
+          <p class="muted">Keep OpenRouter, Ollama Cloud, ElevenLabs, and custom provider keys in one encrypted vault.</p>
         </article>
         <article class="principle">
           <span class="step-number">02</span>
@@ -302,7 +302,7 @@
       <section class="detail-list" aria-label="Integration Details">
         <div class="detail-line">
           <h2>Covers</h2>
-          <p class="muted">Authorization, provider scopes such as <code translate="no">key:openrouter</code>, PKCE, redirect callbacks, token exchange, secure storage, and raw-key leak checks.</p>
+          <p class="muted">Authorization, provider scopes such as <code translate="no">key:openrouter</code> and <code translate="no">key:ollama</code>, PKCE, redirect callbacks, token exchange, secure storage, and raw-key leak checks.</p>
         </div>
       </section>
     `);
@@ -432,7 +432,7 @@
             </div>
             <div class="field">
               <label for="api-key">API Key</label>
-              <input id="api-key" name="api_key" type="password" placeholder="${existing ? "sk-replacement-…" : "sk-or-v1-…"}" autocomplete="off" autocapitalize="none" spellcheck="false" aria-describedby="key-form-error">
+              <input id="api-key" name="api_key" type="password" placeholder="${existing ? "replacement key..." : "paste provider key..."}" autocomplete="off" autocapitalize="none" spellcheck="false" aria-describedby="key-form-error">
             </div>
             <p class="form-error hidden" id="key-form-error" aria-live="polite"></p>
           </div>

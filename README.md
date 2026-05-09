@@ -60,6 +60,9 @@ Apps start an authorization request:
 https://byok.f7z.io/authorize?response_type=code&client_id=com.example.app&app_name=Example&redirect_uri=example%3A%2F%2Fbyok&scope=key%3Aopenrouter&state=<state>&code_challenge=<pkce>&code_challenge_method=S256
 ```
 
+Use the provider-specific scope for the key an app needs, for example
+`key:openrouter`, `key:ollama`, or `key:elevenlabs`.
+
 BYOK asks the user to sign in if needed, then shows their labeled keys for that provider. The user chooses one or saves a new one, then BYOK redirects:
 
 ```text
