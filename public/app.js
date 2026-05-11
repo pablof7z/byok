@@ -81,10 +81,22 @@
   function parseAuthorize() {
     const params = new URLSearchParams(location.search);
     const scope = params.get("scope") || "";
-    const provider = normalize(params.get("provider") || scope.split(/\s+/).find((item) => item.startsWith("key:"))?.slice(4));
-    if (location.pathname !== "/authorize" || !provider) return null;
+    const providers = [];
+    for (const item of scope.split(/\s+/)) {
+      if (!item.startsWith("key:")) continue;
+      const provider = normalize(item.slice(4));
+      if (provider && !providers.includes(provider)) providers.push(provider);
+    }
+    for (const item of (params.get("providers") || "").split(",")) {
+      const provider = normalize(item);
+      if (provider && !providers.includes(provider)) providers.push(provider);
+    }
+    const explicitProvider = normalize(params.get("provider"));
+    if (explicitProvider && !providers.includes(explicitProvider)) providers.push(explicitProvider);
+    if (location.pathname !== "/authorize" || !providers.length) return null;
     return {
-      provider,
+      provider: providers[0],
+      providers,
       responseType: params.get("response_type") || "code",
       clientID: params.get("client_id") || "",
       appName: params.get("app_name") || params.get("client_id") || "Unknown app",
@@ -310,11 +322,14 @@
 
   function renderSignedOut(authRequest) {
     const error = new URLSearchParams(location.search).get("error");
+    const title = authRequest
+      ? `${escapeHtml(authRequest.appName)} Wants ${escapeHtml(requestedProviderTitle(authRequest))}`
+      : "Sign In to BYOK";
     shell(`
       <section class="auth-layout">
         <div>
           <p class="kicker">${authRequest ? "Approve Request" : "Open Vault"}</p>
-          <h1 id="auth-title">${authRequest ? `${escapeHtml(authRequest.appName)} Wants ${escapeHtml(displayName(authRequest.provider))}` : "Sign In to BYOK"}</h1>
+          <h1 id="auth-title">${title}</h1>
           <p class="lead">Your API keys are encrypted on the server and released only after you choose a labeled key.</p>
         </div>
         <section class="surface auth-panel" aria-labelledby="auth-title">
@@ -500,7 +515,7 @@
         state.user = result.user;
         if (authRequest) {
           const created = state.user.keys.find((key) => key.provider === provider && key.label === body.label);
-          return renderAuthorize(authRequest, created?.id);
+          return renderAuthorize(authRequest, { [provider]: created?.id });
         }
         renderHome();
       } catch (apiError) {
@@ -598,74 +613,99 @@
     `);
   }
 
-  function renderAuthorize(request, preferredID) {
-    const providerKeys = (state.user.keys || []).filter((key) => key.provider === request.provider);
-    let selectedID = preferredID || providerKeys[0]?.id || "";
+  function requestedProviderTitle(request) {
+    if ((request.providers || []).length <= 1) return displayName(request.provider);
+    return `${request.providers.length} Provider Keys`;
+  }
+
+  function renderAuthorize(request, preferredSelections = {}) {
+    const selectedByProvider = {};
+    for (const provider of request.providers) {
+      const providerKeys = (state.user.keys || []).filter((key) => key.provider === provider);
+      selectedByProvider[provider] = preferredSelections[provider] || providerKeys[0]?.id || "";
+    }
     shell(`
       <section class="authorize-layout">
         <div>
           <p class="kicker">Access Request</p>
-          <h1>${escapeHtml(request.appName)} Wants ${escapeHtml(displayName(request.provider))}</h1>
-          <p class="lead">Choose a saved key for this app, or reject the request.</p>
+          <h1>${escapeHtml(request.appName)} Wants ${escapeHtml(requestedProviderTitle(request))}</h1>
+          <p class="lead">Choose which saved keys this app can use. Providers without a selected key are skipped.</p>
         </div>
         <div class="surface authorize-panel">
-          <div class="key-line">
-            ${logo(request.provider, 40)}
-            <div>
-              <div class="key-title">${escapeHtml(displayName(request.provider))}</div>
-              <div class="service" translate="no">key:${escapeHtml(request.provider)}</div>
-            </div>
-          </div>
           <div id="authorize-body"></div>
         </div>
       </section>
     `);
 
     function draw() {
-      const available = (state.user.keys || []).filter((key) => key.provider === request.provider);
       const body = $("#authorize-body");
-      if (!available.length) {
-        body.innerHTML = `
-          <div>
-            <p class="muted">No ${escapeHtml(displayName(request.provider))} key exists in your vault yet.</p>
-            <div class="actions">
-              <button class="button" type="button" id="add-first">Add Key</button>
-              <button class="button secondary" type="button" id="deny">Reject</button>
-            </div>
-          </div>
-        `;
-        $("#add-first").addEventListener("click", () => renderKeyEditor(null, request, { provider: request.provider, label: "Default" }));
-        $("#deny").addEventListener("click", () => deny(request));
-        return;
-      }
+      const selectedCount = Object.values(selectedByProvider).filter(Boolean).length;
 
       body.innerHTML = `
         <div class="stack">
-          ${available.map((key) => `
-            <button class="key-row ${key.id === selectedID ? "selected" : ""}" type="button" data-key-id="${escapeHtml(key.id)}" aria-pressed="${key.id === selectedID ? "true" : "false"}">
-              <div class="row">
-                ${logo(key.provider)}
-                <div>
-                  <div class="key-title">${escapeHtml(key.label)}</div>
-                  <div class="service">${escapeHtml(key.provider)}</div>
+          ${request.providers.map((provider) => {
+            const available = (state.user.keys || []).filter((key) => key.provider === provider);
+            const selectedID = selectedByProvider[provider] || "";
+            return `
+              <div class="provider-request">
+                <div class="provider-request-header">
+                  <div class="row">
+                    ${logo(provider)}
+                    <div>
+                      <div class="key-title">${escapeHtml(displayName(provider))}</div>
+                      <div class="service" translate="no">key:${escapeHtml(provider)}</div>
+                    </div>
+                  </div>
+                  <button class="button secondary small-button" type="button" data-add-provider="${escapeHtml(provider)}">Add Key</button>
                 </div>
+                ${available.length ? `
+                  <div class="stack compact-stack">
+                    ${available.map((key) => `
+                      <button class="key-row ${key.id === selectedID ? "selected" : ""}" type="button" data-provider="${escapeHtml(provider)}" data-key-id="${escapeHtml(key.id)}" aria-pressed="${key.id === selectedID ? "true" : "false"}">
+                        <div class="row">
+                          ${logo(key.provider)}
+                          <div>
+                            <div class="key-title">${escapeHtml(key.label)}</div>
+                            <div class="service">${escapeHtml(key.provider)}</div>
+                          </div>
+                        </div>
+                      </button>
+                    `).join("")}
+                    <button class="key-row ${selectedID ? "" : "selected"}" type="button" data-provider="${escapeHtml(provider)}" data-skip-provider="${escapeHtml(provider)}" aria-pressed="${selectedID ? "false" : "true"}">
+                      <div class="row">
+                        <span class="provider-logo muted-logo" aria-hidden="true">--</span>
+                        <div>
+                          <div class="key-title">Do Not Share</div>
+                          <div class="service">Skip this provider</div>
+                        </div>
+                      </div>
+                    </button>
+                  </div>
+                ` : `
+                  <p class="muted">No saved ${escapeHtml(displayName(provider))} key. Add one or leave this provider skipped.</p>
+                `}
               </div>
-            </button>
-          `).join("")}
+            `;
+          }).join("")}
         </div>
         <div class="actions">
-          <button class="button" type="button" id="grant">Grant Access</button>
+          <button class="button" type="button" id="grant"${selectedCount ? "" : " disabled"}>${selectedCount ? `Grant ${selectedCount} Selected ${selectedCount === 1 ? "Key" : "Keys"}` : "Grant Selected Keys"}</button>
           <button class="button secondary" type="button" id="deny">Reject</button>
         </div>
       `;
-      document.querySelectorAll("[data-key-id]").forEach((button) => {
+      document.querySelectorAll("[data-add-provider]").forEach((button) => {
         button.addEventListener("click", () => {
-          selectedID = button.dataset.keyId;
+          renderKeyEditor(null, request, { provider: button.dataset.addProvider, label: "Default" });
+        });
+      });
+      document.querySelectorAll("[data-key-id], [data-skip-provider]").forEach((button) => {
+        button.addEventListener("click", () => {
+          selectedByProvider[button.dataset.provider] = button.dataset.keyId || "";
           draw();
         });
       });
       $("#grant").addEventListener("click", async () => {
-        if (selectedID) await grant(request, selectedID);
+        await grant(request, selectedByProvider);
       });
       $("#deny").addEventListener("click", () => deny(request));
     }
@@ -673,12 +713,15 @@
     draw();
   }
 
-  async function grant(request, keyID) {
+  async function grant(request, selectedByProvider) {
+    const selections = request.providers
+      .map((provider) => ({ provider, key_id: selectedByProvider[provider] }))
+      .filter((item) => item.key_id);
+    if (!selections.length) return;
     const response = await api("/api/create-grant", {
       method: "POST",
       body: JSON.stringify({
-        provider: request.provider,
-        key_id: keyID,
+        selections,
         client_id: request.clientID,
         app_name: request.appName,
         redirect_uri: request.redirectURI,
@@ -688,13 +731,17 @@
       })
     });
     state.user = response.user || state.user;
-    const selected = state.user.keys.find((key) => key.id === keyID);
     const redirect = new URL(request.redirectURI);
     redirect.searchParams.set("code", response.code);
     if (request.state) redirect.searchParams.set("state", request.state);
-    redirect.searchParams.set("provider", request.provider);
-    redirect.searchParams.set("key_id", keyID);
-    redirect.searchParams.set("key_label", selected?.label || "");
+    if (selections.length === 1) {
+      const selected = state.user.keys.find((key) => key.id === selections[0].key_id);
+      redirect.searchParams.set("provider", selections[0].provider);
+      redirect.searchParams.set("key_id", selections[0].key_id);
+      redirect.searchParams.set("key_label", selected?.label || "");
+    } else {
+      redirect.searchParams.set("providers", selections.map((item) => item.provider).join(","));
+    }
     location.href = redirect.toString();
   }
 

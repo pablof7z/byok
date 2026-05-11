@@ -61,9 +61,11 @@ https://byok.f7z.io/authorize?response_type=code&client_id=com.example.app&app_n
 ```
 
 Use the provider-specific scope for the key an app needs, for example
-`key:openrouter`, `key:ollama`, or `key:elevenlabs`.
+`key:openrouter`, `key:ollama`, or `key:elevenlabs`. Apps can request more than
+one key in the same authorization request by separating scopes with spaces:
+`scope=key:openrouter key:elevenlabs key:ollama`.
 
-BYOK asks the user to sign in if needed, then shows their labeled keys for that provider. The user chooses one or saves a new one, then BYOK redirects:
+BYOK asks the user to sign in if needed, then shows their labeled keys for each requested provider. The user chooses which keys to share, skips providers they do not want to grant, or saves a new key, then BYOK redirects:
 
 ```text
 example://byok?code=<code>&state=<state>&provider=openrouter&key_id=<id>&key_label=Default
@@ -93,6 +95,28 @@ Successful responses intentionally return the raw API key because the app needs 
   "api_key": "sk-...",
   "key_id": "...",
   "key_label": "Default"
+}
+```
+
+When multiple provider keys were granted, the token response returns the selected keys:
+
+```json
+{
+  "token_type": "raw_api_keys",
+  "providers": [
+    {
+      "provider": "openrouter",
+      "api_key": "sk-...",
+      "key_id": "...",
+      "key_label": "Default"
+    },
+    {
+      "provider": "elevenlabs",
+      "api_key": "sk_...",
+      "key_id": "...",
+      "key_label": "Default"
+    }
+  ]
 }
 ```
 

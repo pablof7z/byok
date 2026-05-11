@@ -66,13 +66,31 @@ module.exports = async function handler(req, res) {
       return res.json({ error: "invalid_code_verifier" });
     }
 
+    const providers = Array.isArray(grant.providers)
+      ? grant.providers.filter(item => item?.provider && item?.api_key)
+      : [];
+
     res.statusCode = 200;
+    if (providers.length > 1) {
+      return res.json({
+        token_type: "raw_api_keys",
+        providers: providers.map(item => ({
+          provider: item.provider,
+          api_key: item.api_key,
+          key_id: item.key_id,
+          key_label: item.key_label
+        })),
+        app_name: grant.app_name,
+        issued_at: now
+      });
+    }
+
     return res.json({
       token_type: "raw_api_key",
-      provider: grant.provider,
-      api_key: grant.api_key,
-      key_id: grant.key_id,
-      key_label: grant.key_label,
+      provider: providers[0]?.provider || grant.provider,
+      api_key: providers[0]?.api_key || grant.api_key,
+      key_id: providers[0]?.key_id || grant.key_id,
+      key_label: providers[0]?.key_label || grant.key_label,
       app_name: grant.app_name,
       issued_at: now
     });

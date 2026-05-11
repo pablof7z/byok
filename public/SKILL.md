@@ -1,6 +1,6 @@
 ---
 name: byok-connect
-description: Integrate client apps with BYOK authorization and key access. Use when Codex needs to connect a web app, server app, iOS app, native app, or hybrid app to BYOK using OAuth-style authorization, provider scopes such as key:openrouter or key:ollama, PKCE, redirect callbacks, token exchange, raw API key handling, secure storage, or launch/return URL flows.
+description: Integrate client apps with BYOK authorization and key access. Use when Codex needs to connect a web app, server app, iOS app, native app, or hybrid app to BYOK using OAuth-style authorization, provider scopes such as key:openrouter or key:ollama, multi-provider scope requests, PKCE, redirect callbacks, token exchange, raw API key handling, secure storage, or launch/return URL flows.
 ---
 
 # BYOK Connect
@@ -9,12 +9,12 @@ Use this skill to wire an app to BYOK without leaking secrets or inventing an un
 
 ## Integration Flow
 
-1. Identify the provider key the app needs, for example `key:openrouter` or `key:ollama`. Request the narrowest BYOK provider scopes required by the feature.
+1. Identify the provider keys the app needs, for example `key:openrouter` and `key:elevenlabs`. Request the narrowest BYOK provider scopes required by the feature; when onboarding needs several providers, request them in one authorization URL as a space-separated `scope`.
 2. Use OAuth-style authorization for user consent. Generate a high-entropy `state`; use PKCE (`code_verifier` and S256 `code_challenge`) for public clients and iOS/native flows.
 3. Launch BYOK authorization with `client_id`, `redirect_uri`, requested scopes, `state`, and PKCE challenge when applicable.
 4. Handle the redirect callback. Verify `state` before exchanging the authorization code. Reject unknown callback origins, unexpected schemes, and missing PKCE state.
 5. Exchange the code with BYOK from the correct trust boundary: server-side for confidential web apps; app-side only for public clients using PKCE.
-6. Store returned BYOK grants/tokens securely. Retrieve or proxy provider keys only when needed, and never print, log, commit, or persist raw provider API keys outside the approved secret store.
+6. Store returned BYOK grants/tokens securely. A multi-provider grant returns `token_type: "raw_api_keys"` plus a `providers` array; save only the providers returned, since the user may skip unavailable or unwanted keys. Retrieve or proxy provider keys only when needed, and never print, log, commit, or persist raw provider API keys outside the approved secret store.
 
 ## Web Apps
 

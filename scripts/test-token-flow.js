@@ -27,6 +27,39 @@ for (const provider of ["openrouter", "ollama"]) {
   assert.equal(opened.code_challenge, sha256Base64url(verifier));
 }
 
+const multiGrant = {
+  exp: Math.floor(Date.now() / 1000) + 180,
+  provider: "openrouter",
+  api_key: "sk-or-v1-bullshit-local-test",
+  key_id: "openrouter-key-id",
+  key_label: "Bullshit OpenRouter",
+  providers: [
+    {
+      provider: "openrouter",
+      api_key: "sk-or-v1-bullshit-local-test",
+      key_id: "openrouter-key-id",
+      key_label: "Bullshit OpenRouter"
+    },
+    {
+      provider: "elevenlabs",
+      api_key: "elevenlabs-test-key",
+      key_id: "elevenlabs-key-id",
+      key_label: "Bullshit ElevenLabs"
+    }
+  ],
+  client_id: "com.podcastr.app",
+  app_name: "Podcastr",
+  redirect_uri: "podcastr://byok",
+  state: "state-test",
+  code_challenge: sha256Base64url(verifier),
+  code_challenge_method: "S256"
+};
+
+const multiOpened = openGrant(sealGrant(multiGrant));
+assert.equal(multiOpened.providers.length, 2);
+assert.equal(multiOpened.providers[1].provider, "elevenlabs");
+assert.equal(multiOpened.providers[1].api_key, "elevenlabs-test-key");
+
 const user = { id: "test-user", keys: [] };
 const stored = upsertAPIKey(user, {
   provider: "ollama",
