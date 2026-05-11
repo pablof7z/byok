@@ -61,9 +61,9 @@ https://byok.f7z.io/authorize?response_type=code&client_id=com.example.app&app_n
 ```
 
 Use the provider-specific scope for the key an app needs, for example
-`key:openrouter`, `key:ollama`, or `key:elevenlabs`. Apps can request more than
+`key:openrouter`, `key:ollama`, `key:elevenlabs`, or `key:assemblyai`. Apps can request more than
 one key in the same authorization request by separating scopes with spaces:
-`scope=key:openrouter key:elevenlabs key:ollama`.
+`scope=key:openrouter key:elevenlabs key:assemblyai key:ollama`.
 
 BYOK asks the user to sign in if needed, then shows their labeled keys for each requested provider. The user chooses which keys to share, skips providers they do not want to grant, or saves a new key, then BYOK redirects:
 

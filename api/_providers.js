@@ -2,6 +2,7 @@ const providers = [
   ["openrouter", "OpenRouter", "Model routing", "OR", "#141820", "#fff"],
   ["ollama", "Ollama Cloud", "Hosted Ollama models", "OC", "#111827", "#fff"],
   ["elevenlabs", "ElevenLabs", "Speech and transcription", "11", "#f0eee8", "#000"],
+  ["assemblyai", "AssemblyAI", "Speech-to-text", "AA", "#5b4bff", "#fff"],
   ["openai", "OpenAI", "Models and speech", "AI", "#08745f", "#fff"],
   ["anthropic", "Anthropic", "Claude models", "A", "#dbccba", "#2e241d"],
   ["google", "Google AI", "Gemini API", "G", "#4285f4", "#fff"],

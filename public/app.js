@@ -236,7 +236,7 @@
         <article class="principle">
           <span class="step-number">01</span>
           <h2>Store Keys</h2>
-          <p class="muted">Keep OpenRouter, Ollama Cloud, ElevenLabs, and custom provider keys in one encrypted vault.</p>
+          <p class="muted">Keep OpenRouter, Ollama Cloud, ElevenLabs, AssemblyAI, and custom provider keys in one encrypted vault.</p>
         </article>
         <article class="principle">
           <span class="step-number">02</span>
@@ -314,7 +314,7 @@
       <section class="detail-list" aria-label="Integration Details">
         <div class="detail-line">
           <h2>Covers</h2>
-          <p class="muted">Authorization, provider scopes such as <code translate="no">key:openrouter</code> and <code translate="no">key:ollama</code>, PKCE, redirect callbacks, token exchange, secure storage, and raw-key leak checks.</p>
+          <p class="muted">Authorization, provider scopes such as <code translate="no">key:openrouter</code>, <code translate="no">key:assemblyai</code>, and <code translate="no">key:ollama</code>, PKCE, redirect callbacks, token exchange, secure storage, and raw-key leak checks.</p>
         </div>
       </section>
     `);

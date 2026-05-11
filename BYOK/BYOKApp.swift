@@ -476,6 +476,7 @@ private enum ProviderCatalog {
         ProviderPreset(service: "openrouter", displayName: "OpenRouter", subtitle: "Model routing", mark: "OR", background: Color(red: 0.08, green: 0.10, blue: 0.13), foreground: .white),
         ProviderPreset(service: "ollama", displayName: "Ollama Cloud", subtitle: "Hosted Ollama models", mark: "OC", background: Color(red: 0.07, green: 0.09, blue: 0.15), foreground: .white),
         ProviderPreset(service: "elevenlabs", displayName: "ElevenLabs", subtitle: "Speech and transcription", mark: "11", background: Color(red: 0.95, green: 0.95, blue: 0.92), foreground: .black),
+        ProviderPreset(service: "assemblyai", displayName: "AssemblyAI", subtitle: "Speech-to-text", mark: "AA", background: Color(red: 0.36, green: 0.29, blue: 1.00), foreground: .white),
         ProviderPreset(service: "openai", displayName: "OpenAI", subtitle: "Models and speech", mark: "AI", background: Color(red: 0.05, green: 0.45, blue: 0.36), foreground: .white),
         ProviderPreset(service: "anthropic", displayName: "Anthropic", subtitle: "Claude models", mark: "A", background: Color(red: 0.86, green: 0.80, blue: 0.72), foreground: Color(red: 0.18, green: 0.14, blue: 0.11)),
         ProviderPreset(service: "google", displayName: "Google AI", subtitle: "Gemini API", mark: "G", background: Color(red: 0.26, green: 0.52, blue: 0.96), foreground: .white),
